@@ -13,6 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,6 +26,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Stream;
 
 import static com.dorris.atdd.membership.constant.MembershipConstants.USER_ID_HEADER;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -181,9 +185,6 @@ public class MembershipControllerTest {
                 .content(gson.toJson(getMembershipRequestDto(MembershipType.NAVER, 10000)))
                 .contentType(MediaType.APPLICATION_JSON));
 
-        System.out.println(" >>>>>>  "+status().isBadRequest());
-
-        //verify(membershipService, times(1)).addMembership("12345",MembershipType.NAVER,10000);
         // then
         resultActions.andExpect(status().isCreated());
 
@@ -192,6 +193,31 @@ public class MembershipControllerTest {
         assertThat(response.getMembershipType()).isEqualTo(MembershipType.NAVER);
         assertThat(response.getId()).isNotNull();
 
+    }
+
+    @DisplayName("[Controller Test] 실패케이스 - 잘못된 파라미터 (point가 null, point가 음수, MembershipType이 null 일때) 실패")
+    @ParameterizedTest
+    @MethodSource("invalidMembershipAddParameter")
+    public void given_whenPostBadParam_thenBadRequest(final MembershipType membershipType, final Integer point) throws Exception {
+        // given
+        final String url = "/api/v1/memberships";
+
+        // when
+        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.post(url)
+                .header(USER_ID_HEADER,"12345")
+                .content(gson.toJson(getMembershipRequestDto(membershipType, point)))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+    }
+
+    private static Stream<Arguments> invalidMembershipAddParameter(){
+        return Stream.of(
+                Arguments.of(MembershipType.NAVER,null),
+                Arguments.of(MembershipType.NAVER,-1),
+                Arguments.of(null,10000)
+        );
     }
 
     private MembershipRequestDto getMembershipRequestDto(final MembershipType membershipType, final Integer point){
