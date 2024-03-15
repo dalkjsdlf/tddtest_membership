@@ -2,12 +2,17 @@ package com.dorris.atdd.membership.service;
 
 import com.dorris.atdd.membership.domain.Membership;
 import com.dorris.atdd.membership.domain.type.MembershipType;
+import com.dorris.atdd.membership.dto.MembershipDetailResponseDto;
 import com.dorris.atdd.membership.dto.MembershipResponseDto;
 import com.dorris.atdd.membership.exception.MembershipErrorResult;
 import com.dorris.atdd.membership.exception.MembershipException;
 import com.dorris.atdd.membership.repository.MembershipRepository;
+import com.fasterxml.classmate.AnnotationOverrides;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,4 +45,17 @@ public class MembershipService {
     }
 
 
+    public List<MembershipDetailResponseDto> getMembershipList(final String userId) {
+        final List<Membership> membershipList = membershipRepository.findAllByUserId(userId);
+
+
+        return membershipList.stream()
+                .map(v -> MembershipDetailResponseDto.builder()
+                        .id(v.getId())
+                        .membershipType(v.getMembershipType())
+                        .point(v.getPoint())
+                        .createdAt(v.getCreatedAt())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }

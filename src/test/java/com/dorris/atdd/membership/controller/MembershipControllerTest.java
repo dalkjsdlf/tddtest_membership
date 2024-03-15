@@ -2,6 +2,7 @@ package com.dorris.atdd.membership.controller;
 
 import com.dorris.atdd.membership.domain.Membership;
 import com.dorris.atdd.membership.domain.type.MembershipType;
+import com.dorris.atdd.membership.dto.MembershipDetailResponseDto;
 import com.dorris.atdd.membership.dto.MembershipRequestDto;
 import com.dorris.atdd.membership.dto.MembershipResponseDto;
 import com.dorris.atdd.membership.exception.GlobalExceptionHandler;
@@ -26,11 +27,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static com.dorris.atdd.membership.constant.MembershipConstants.USER_ID_HEADER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -210,6 +213,41 @@ public class MembershipControllerTest {
 
         // then
         resultActions.andExpect(status().isBadRequest());
+    }
+
+    @DisplayName("[Controller Test] 실패케이스 -  RequestHeader에 사용자 식별값이 없는경우")
+    @Test()
+    public void givenNoting_whenGet_thenThrow() throws Exception {
+        // given
+        final String url = "/api/v1/memberships";
+
+        // when
+        ResultActions resultActions = mockMvc.perform(get(url));
+
+        // then
+        resultActions.andExpect(status().isBadRequest());
+
+    }
+
+    @DisplayName("[Controller Test] 성공케이스 -  특정 사용자 모든 멤버십 조회 성공")
+    @Test
+    public void givenUserId_whenGetMemberships_thenGetMembershipDetailDtoList() throws Exception {
+        // given
+        final String url = "/api/v1/memberships";
+        doReturn(Arrays.asList(
+                MembershipDetailResponseDto.builder().build(),
+                MembershipDetailResponseDto.builder().build(),
+                MembershipDetailResponseDto.builder().build()
+        )).when(membershipService).getMembershipList("12345");
+
+        // when
+        final ResultActions resultActions = mockMvc.perform(
+                MockMvcRequestBuilders.get(url)
+                        .header(USER_ID_HEADER, "12345")
+        );
+
+        // then
+        resultActions.andExpect(status().isOk());
     }
 
     private static Stream<Arguments> invalidMembershipAddParameter(){

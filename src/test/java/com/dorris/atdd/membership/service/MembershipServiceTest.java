@@ -3,6 +3,7 @@ package com.dorris.atdd.membership.service;
 
 import com.dorris.atdd.membership.domain.Membership;
 import com.dorris.atdd.membership.domain.type.MembershipType;
+import com.dorris.atdd.membership.dto.MembershipDetailResponseDto;
 import com.dorris.atdd.membership.dto.MembershipResponseDto;
 import com.dorris.atdd.membership.exception.MembershipErrorResult;
 import com.dorris.atdd.membership.exception.MembershipException;
@@ -16,6 +17,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -116,4 +120,23 @@ public class MembershipServiceTest {
         verify(membershipRepository, times(1)).findByUserIdAndMembershipType(userId, membershipType);
         verify(membershipRepository, times(1)).save(any(Membership.class));
     }
+
+    @DisplayName("[ Service Test ] 특정 사용자의 멤버십 목록조회")
+    @Test()
+    public void givenUserId_whenSelectAllMemberships_thenMemberships(){
+        // given
+        doReturn(Arrays.asList(
+                Membership.builder().build(),
+                Membership.builder().build(),
+                Membership.builder().build()
+        )).when(membershipRepository).findAllByUserId(userId);
+
+        // when
+        final List<MembershipDetailResponseDto> result = target.getMembershipList(userId);
+
+        // then
+        assertThat(result.size()).isEqualTo(3);
+    }
+
+
 }

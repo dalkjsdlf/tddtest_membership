@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -20,6 +22,9 @@ public class MembershipRepositoryTest {
     public MembershipRepositoryTest(MembershipRepository membershipRepository) {
         this.membershipRepository = membershipRepository;
     }
+
+    String userId = "dalkjsdlf";
+    int point = 10000;
 
     @DisplayName("MembershipRepository가 Null인지 검사")
     @Test()
@@ -38,9 +43,9 @@ public class MembershipRepositoryTest {
 
         final Membership membership = Membership
                 .builder()
-                .userId("dalkjsdlf")
+                .userId(userId)
                 .membershipType(MembershipType.NAVER)
-                .point(10000L)
+                .point(point)
                 .build();
 
         // when
@@ -61,14 +66,13 @@ public class MembershipRepositoryTest {
     public void givenMembershipTypeUserId_whenRegisterMembershiAndFind_thenSuccessfullySave(){
         // given
         // 2. 멤버쉽 생성
-        String userId = "dalkjsdlf";
         MembershipType membershipType = MembershipType.NAVER;
 
         final Membership membership = Membership
                 .builder()
-                .userId("dalkjsdlf")
+                .userId(userId)
                 .membershipType(membershipType)
-                .point(10000L)
+                .point(point)
                 .build();
 
         // when
@@ -82,44 +86,49 @@ public class MembershipRepositoryTest {
         assertThat(resultMembership.getUserId()).isNotNull();
         assertThat(resultMembership.getUserId()).isEqualTo(userId);
         assertThat(resultMembership.getMembershipType()).isEqualTo(membershipType);
-        assertThat(resultMembership.getPoint()).isEqualTo(10000L);
+        assertThat(resultMembership.getPoint()).isEqualTo(point);
     }
 
-    @DisplayName("특정 사용자의 멤버십 전체 조회 테스트")
+    @DisplayName("특정 사용자의 멤버십 전체 조회시 0건 조회")
     @Test()
-    public void givenUser_whenSelectAllMemberships_thenAllMembershipsByUserId(){
+    public void givenUserId_whenFindByUserId_thenResultSize0(){
         // given
 
-        // when
-
-        // then
-    }
-    @DisplayName("특정 사용자의 특정 멤버십 조회 테스트")
-    @Test()
-    public void givenUserAndMembership_whenSelectOneMembership_thenMembershipByUserId(){
-        // given
+        List<Membership> membershipList = membershipRepository.findAllByUserId("12312");
 
         // when
-
-        // then
-    }
-    @DisplayName("특정 사용자의 특정 멤버십 포인트 적립 테스트")
-    @Test()
-    public void givenUserAndMembershipAndPoint_whenAddPoint_thenSuccessfullyAddPoint(){
-        // given
-
-        // when
-
+        assertThat(membershipList.size()).isEqualTo(0);
         // then
     }
 
-    @DisplayName("특정 사용자의 특정 멤버십 포인트 해지 테스트")
+    @DisplayName("특정 사용자의 멤버십 전체 조회시 2건 조회")
     @Test()
-    public void givenUserAndMembership_whenDeleteMembership_thenSuccessfullyDelete(){
+    public void givenUserIdAndTwoMembership_whenFindByUserId_thenResultSize0(){
         // given
 
-        // when
+        final Membership naverMembership = Membership
+                .builder()
+                .userId(userId)
+                .membershipType(MembershipType.NAVER)
+                .point(point)
+                .build();
+        final Membership kakaoMembership = Membership
+                .builder()
+                .userId(userId)
+                .membershipType(MembershipType.KAKAO)
+                .point(point)
+                .build();
 
+        membershipRepository.save(naverMembership);
+        membershipRepository.save(kakaoMembership);
+
+        List<Membership> membershipList = membershipRepository.findAllByUserId(userId);
+
+        // when
+        assertThat(membershipList.size()).isEqualTo(2);
         // then
     }
+
+
+
 }
